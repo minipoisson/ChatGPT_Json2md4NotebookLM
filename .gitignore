@@ -1,0 +1,37 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.uv-cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local secrets and exported ChatGPT data
+.env
+.env.*
+samples/*
+!samples/.gitkeep
+!samples/README.md
+!samples/*.example.json
+conversations*.json
+
+# Generated Markdown outputs
+ChatGPT_History-*.md
+*_History-*.md
+
+# Local files
+*.log
+*.lnk
+.DS_Store
+Thumbs.db
+
+# Reference implementations are local-only context for development.
+references/
