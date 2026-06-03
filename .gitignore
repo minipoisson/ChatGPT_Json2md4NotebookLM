@@ -35,3 +35,4 @@ Thumbs.db
 
 # Reference implementations are local-only context for development.
 references/
+SESSION_BOOTSTRAP.md

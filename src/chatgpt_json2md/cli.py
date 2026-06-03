@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
 
+_CONVERSATIONS_GLOB = "conversations*.json"
+
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from chatgpt_json2md.converter import convert_conversations
@@ -85,10 +87,9 @@ def resolve_input_files(inputs: Sequence[str]) -> list[Path]:
     for raw in inputs:
         candidate = Path(raw)
         if candidate.is_dir():
-            paths.extend(sorted(candidate.glob("conversations*.json")))
+            paths.extend(sorted(candidate.glob(_CONVERSATIONS_GLOB)))
         elif _has_glob(raw):
-            parent = candidate.parent if str(candidate.parent) != "" else Path(".")
-            paths.extend(sorted(parent.glob(candidate.name)))
+            paths.extend(sorted(candidate.parent.glob(candidate.name)))
         elif candidate.exists():
             paths.append(candidate)
 

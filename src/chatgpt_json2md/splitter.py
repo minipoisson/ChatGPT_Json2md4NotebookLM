@@ -32,28 +32,33 @@ def split_blocks(
 
     outputs: list[OutputFile] = []
     index = 1
+    header_bytes = _byte_len(header)
     current = header
-    current_bytes = _byte_len(current)
+    current_bytes = header_bytes
+    just_reset = True
 
     for block in blocks:
         block_bytes = _byte_len(block)
 
-        if current != header and current_bytes + block_bytes > limit:
+        if not just_reset and current_bytes + block_bytes > limit:
             outputs.append(OutputFile(numbered_output_path(output_file, index), current))
             index += 1
             current = header
-            current_bytes = _byte_len(current)
+            current_bytes = header_bytes
+            just_reset = True
 
         current += block
         current_bytes += block_bytes
 
-        if current == header + block and _byte_len(current) > limit:
+        if just_reset and current_bytes > limit:
             outputs.append(OutputFile(numbered_output_path(output_file, index), current, True))
             index += 1
             current = header
-            current_bytes = _byte_len(current)
+            current_bytes = header_bytes
+        else:
+            just_reset = False
 
-    if current != header or not outputs:
+    if not just_reset or not outputs:
         outputs.append(OutputFile(numbered_output_path(output_file, index), current))
 
     return outputs

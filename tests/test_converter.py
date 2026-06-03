@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from chatgpt_json2md.converter import convert_conversations
 
 
-def message_node(node_id, role, text, parent=None, *, recipient="all", metadata=None, create_time=0):
+def message_node(node_id, role, text, parent=None, *, recipient: str | None = "all", metadata=None, create_time=0):
     return {
         "id": node_id,
         "message": {
@@ -96,6 +96,43 @@ class ConverterTests(unittest.TestCase):
         result = convert_conversations([conv])
 
         self.assertIn("text part", result.blocks[0])
+
+    def test_recipient_null_message_is_included(self):
+        # recipient=None (JSON null) means broadcast — must NOT be filtered out.
+        conv = {
+            "title": "NullRecipient",
+            "create_time": 1,
+            "update_time": 1,
+            "current_node": "assistant",
+            "mapping": {
+                "root": {"id": "root", "message": None, "parent": None, "children": ["user"]},
+                "user": message_node("user", "user", "Question", "root", recipient=None),
+                "assistant": message_node("assistant", "assistant", "Answer", "user"),
+            },
+        }
+        result = convert_conversations([conv])
+        self.assertEqual(len(result.blocks), 1)
+        self.assertIn("Question", result.blocks[0])
+        self.assertIn("Answer", result.blocks[0])
+
+    def test_parent_none_string_terminates_walk_cleanly(self):
+        # Some exporters write "parent": "None" (string) at the root instead of JSON null.
+        # The walk must terminate cleanly without a broken-node-reference warning.
+        conv = {
+            "title": "StringifiedNoneParent",
+            "create_time": 1,
+            "update_time": 1,
+            "current_node": "assistant",
+            "mapping": {
+                "user": message_node("user", "user", "Hello", "None"),
+                "assistant": message_node("assistant", "assistant", "Hi", "user"),
+            },
+        }
+        result = convert_conversations([conv])
+        self.assertEqual(len(result.blocks), 1)
+        self.assertIn("Hello", result.blocks[0])
+        self.assertIn("Hi", result.blocks[0])
+        self.assertEqual(result.warnings, [])
 
     def test_conversations_are_sorted_by_update_then_create_then_input_order(self):
         conv_a = {

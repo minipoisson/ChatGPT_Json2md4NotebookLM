@@ -9,6 +9,7 @@ from .timeutils import format_epoch
 
 
 _ARTIFACT_RE = re.compile(r"\ue200([^\ue201\ue202]*)\ue202([^\ue201]*)\ue201")
+_ROLE_LABELS: dict[str, str] = {"user": "User", "assistant": "Assistant"}
 _STANDALONE_ARTIFACT_CHARS_RE = re.compile(r"[\ue200-\ue206]")
 
 
@@ -91,9 +92,9 @@ def render_conversation(conversation: Conversation) -> str:
     ]
 
     for message in conversation.messages:
-        label = "User" if message.role == "user" else "Assistant"
+        label = _ROLE_LABELS.get(message.role, message.role.capitalize())
         text = normalize_chatgpt_artifacts(message.text)
-        text = escape_angle_brackets(normalize_blank_lines(text))
+        text = escape_angle_brackets(text)
         if not text:
             continue
         lines.extend([f"### {label}", "", f"- Time: {format_epoch(message.create_time)}", "", text, ""])
